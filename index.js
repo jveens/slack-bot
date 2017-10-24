@@ -158,7 +158,7 @@ app.post('/commands/things', function(req, res){
     // Send message with 3 Things link to all channel participants
 
     // sendMainMessage(creator, dayOfWeek)
-    const message = botMessages.sendConfirmMessage(creatorName, dayOfWeek);
+    const message = botMessages.confirmMessage(creatorName, dayOfWeek);
 
     res.send(message);
 
@@ -174,8 +174,9 @@ app.post('/buttons', function(req, res){
     let callbackId = payload.callback_id;
     let action = payload.actions[0].name;
     let channel = payload.channel.id;
-    let creatorName = payload.user.name;
-    let dayOfWeek = payload.actions[0].value;
+    let creator = payload.user;
+    let dayOfWeek = helpers.capitalizeFirstLetter(payload.actions[0].value);
+    let creatorMessage;
     let message;
 
     console.log(payload);
@@ -183,7 +184,8 @@ app.post('/buttons', function(req, res){
     if (action === 'create') {
         // Store in DB
         // Send message to channel
-        message =  botMessages.sendMainMessage(creatorName, dayOfWeek);
+        message =  botMessages.mainMessage(creator.name, dayOfWeek);
+        creatorMessage = botMessages.creatorMessage(dayOfWeek);
         console.log(message);
     }
 
@@ -195,6 +197,17 @@ app.post('/buttons', function(req, res){
                 console.log('Error:', err);
             } else {
                 console.log('Message sent: ', res);
+
+                web.chat.postMessage(
+                    creator.id,
+                    creatorMessage,
+                    function(err, res) {
+                        if (err) {
+                            console.log('Error:', err);
+                        } else {
+                            console.log('CreatorMessage sent: ', res);
+                        }
+                    })
             }
     });
 

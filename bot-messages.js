@@ -3,7 +3,7 @@ let helpers = require('./helpers');
 
 module.exports = {
 
-    sendConfirmMessage: function(creatorName, day) {
+    confirmMessage: function(creatorName, day) {
         
         let dayOfWeek = helpers.capitalizeFirstLetter(day);
         let message_json = {};
@@ -38,7 +38,7 @@ module.exports = {
         return message_json;
     },
     
-    sendMainMessage: function(creatorName, dayOfWeek) {
+    mainMessage: function(creatorName, dayOfWeek) {
 
         let message = {};
         let actions = [];
@@ -52,11 +52,12 @@ module.exports = {
 
         actions.push(joinButton);
         
-        message['text'] = `:balloon::balloon::balloon:\n3 Things has been commenced by <@${creatorName}>!\nWe\'ll be sharing this week\'s Things ${helpers.capitalizeFirstLetter(dayOfWeek)} at noon.`;
+        message['text'] = `3 Things has been commenced by <@${creatorName}>!`;
         message.data = {};
         message.data['response_type'] = 'in_channel';
         message.data['attachments'] = [
             {
+                text: `:balloon::balloon::balloon:\nWe\'ll be sharing this week\'s Things ${dayOfWeek} at noon.`,
                 callback_id: 'submit_3things',
                 fallback: 'Join 3 Things',
                 actions: actions,
@@ -67,6 +68,14 @@ module.exports = {
         message.data['attachments'] = JSON.stringify(message.data['attachments']);
 
         return message;
+    },
+
+    creatorMessage: function(dayOfWeek) {
+
+        let message = `You've started 3Things! We'll be sharing ${dayOfWeek} at *noon*`;
+
+        return message;
+
     }
 
 };
