@@ -7,15 +7,20 @@ let passport = require('passport');
 let session = require('express-session');
 let SlackStrategy = require('passport-slack').Strategy;
 let WebClient = require('@slack/client').WebClient;
+let mongoose = require('mongoose');
 
 let helpers = require('./helpers');
 let botMessages = require('./bot-messages');
+let db = require('./database');
 
-var token = process.env.SLACK_API_TOKEN; //see section above on sensitive data
-var clientId = process.env.CLIENT_ID;
-var clientSecret = process.env.CLIENT_SECRET;
-var verificationToken = process.env.VERIFICATION_TOKEN;
+const token = process.env.SLACK_API_TOKEN; //see section above on sensitive data
+const clientId = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
+const verificationToken = process.env.VERIFICATION_TOKEN;
 
+// import models
+require('./models/User');
+const User = mongoose.model('User');
 
 let web = new WebClient(token);
 
@@ -89,39 +94,6 @@ function checkAuth(req, res, next) {
     }
 }
 
-function parseDayOfWeek(words) {
-
-    let days = [
-        'sunday',
-        'monday',
-        'tuesday',
-        'wednesday',
-        'thursday',
-        'friday',
-        'saturday'
-    ];
-
-    let day;
-
-    words.some(word => {
-        if (days.includes(word)) {
-            day = word;
-        }
-    });
-
-    return day;
-}
-
-function parseTime(words) {
-
-    let time;
-
-    words.some(word => {
-        var date = new Date('');
-        console.log(date);
-    });
-}
-
 app.post('/commands/things', function(req, res){
     let command = req.body;
     let thingsText = command.text;
@@ -142,7 +114,7 @@ app.post('/commands/things', function(req, res){
         res.send('Typing `/3things [optional day of the week] [at optional time]` will start 3 Things for your team!');
     }
 
-    let dayOfWeek = parseDayOfWeek(words);
+    let dayOfWeek = helpers.parseDayOfWeek(words);
 
     if (typeof dayOfWeek === 'undefined') {
         confirmDay = true;
@@ -187,28 +159,82 @@ app.post('/buttons', function(req, res){
         message =  botMessages.mainMessage(creator.name, dayOfWeek);
         creatorMessage = botMessages.creatorMessage(dayOfWeek);
         console.log(message);
+
+        // Send a message to the team
+        web.chat.postMessage(
+            channel,
+            message.text,
+            message.data,
+            function (err, res) {
+                if (err) {
+                    console.log('Error:', err);
+                } else {
+                    console.log('Message sent: ', res);
+
+        // Send a message to the creator
+                    web.chat.postMessage(
+                        creator.id,
+                        creatorMessage,
+                        function (err, res) {
+                            if (err) {
+                                console.log('Error:', err);
+                            } else {
+                                console.log('CreatorMessage sent: ', res);
+                            }
+                        }
+                    )
+                }
+            }
+        );
     }
 
-    web.chat.postMessage(channel, 
-        message.text, 
-        message.data, 
-        function(err, res) {
-            if (err) {
-                console.log('Error:', err);
-            } else {
-                console.log('Message sent: ', res);
+    if (action === 'join') {
+        console.log(payload.user.name + " IS IN!");
+        const slackId = payload.user.id;
+        const name = payload.user.name;
+        const team = payload.team.id;
+        const channel = payload.channel.id;
 
-                web.chat.postMessage(
-                    creator.id,
-                    creatorMessage,
-                    function(err, res) {
-                        if (err) {
-                            console.log('Error:', err);
-                        } else {
-                            console.log('CreatorMessage sent: ', res);
-                        }
-                    })
+        const user = new User({
+            slack_id: slackId,
+            name,
+            team
+        });
+
+        // check for the user
+        User.count({
+            slack_id: slackId
+        })
+        .then(result => {
+            if (result > 0) {
+                console.log('already exists');
+            } else {
+                console.log('save it!');
             }
-    });
+        });
+
+        // user
+        // .save()
+        // .then(user => {
+        //     console.log('Hi new user!' + user.name);
+
+        //     web.chat.postMessage(
+        //         channel,
+        //         'Terrific, I\'ve sent you a DM. You can submit your 3 Things there.',
+        //         {
+        //             replace_original: true
+        //         },
+        //         function(err, res) {
+        //             if (err) {
+        //                 console.log('Error: ', err);
+        //             } else {
+        //                 console.log('DONNEEEEE');
+        //             }
+        //         }
+        //     )
+        // });
+    }
+
+    
 
 });

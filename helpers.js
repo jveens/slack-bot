@@ -8,6 +8,39 @@ module.exports = {
         return string.charAt(0).toUpperCase() + string.slice(1);
     },
 
+    parseDayOfWeek: function(words) {
+
+        let days = [
+            'sunday',
+            'monday',
+            'tuesday',
+            'wednesday',
+            'thursday',
+            'friday',
+            'saturday'
+        ];
+
+        let day;
+
+        words.some(word => {
+            if (days.includes(word)) {
+                day = word;
+            }
+        });
+
+        return day;
+    },
+
+    parseTime: function(words) {
+
+        let time;
+
+        words.some(word => {
+            var date = new Date('');
+            console.log(date);
+        });
+    },
+
     sendMessageToSlackResponseURL: function(responseURL, JSONmessage){
         var postOptions = {
             uri: responseURL,
