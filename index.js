@@ -182,7 +182,7 @@ app.post('/buttons', function(req, res){
                                 console.log('CreatorMessage sent: ', res);
                             }
                         }
-                    )
+                    );
                 }
             }
         );

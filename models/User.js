@@ -6,10 +6,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    name: {
-        type: String,
-        required: true
-    },
     team: {
         type: String,
         required: true
