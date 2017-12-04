@@ -104,33 +104,35 @@ app.post('/commands/things', function(req, res){
 
     // console.log(command);
 
-    let lowercaseString = thingsText.toLowerCase();
+    let lowercaseString = thingsText;
     let words = lowercaseString.split(' ');
     
     let confirmDay;
     let confirmTime;
 
     if (thingsText == 'help') {
-        res.send('Typing `/3things [optional day of the week] [at optional time]` will start 3 Things for your team!');
+        res.send('Typing `/3things [required google forms link]` will start 3 Things for your team!');
     }
 
-    let dayOfWeek = helpers.parseDayOfWeek(words);
+    // let dayOfWeek = helpers.parseDayOfWeek(words);
 
-    if (typeof dayOfWeek === 'undefined') {
-        confirmDay = true;
-        dayOfWeek = 'friday';
-    } else {
-        // remove the day of the week from the array 
-        let index = words.indexOf(dayOfWeek);
-        words.splice(index, 1)
-    }
+    // if (typeof dayOfWeek === 'undefined') {
+    //     confirmDay = true;
+    //     dayOfWeek = 'friday';
+    // } else {
+    //     // remove the day of the week from the array 
+    //     let index = words.indexOf(dayOfWeek);
+    //     words.splice(index, 1)
+    // }
+
+    let formUrl = helpers.parseFormUrl(words);
 
     // Save 3 things to DB
 
     // Send message with 3 Things link to all channel participants
 
     // sendMainMessage(creator, dayOfWeek)
-    const message = botMessages.confirmMessage(creatorName, dayOfWeek);
+    const message = botMessages.confirmMessage(creatorName, formUrl);
 
     res.send(message);
 
@@ -147,7 +149,8 @@ app.post('/buttons', function(req, res){
     let action = payload.actions[0].name;
     let channel = payload.channel.id;
     let creator = payload.user;
-    let dayOfWeek = helpers.capitalizeFirstLetter(payload.actions[0].value);
+    // let dayOfWeek = helpers.capitalizeFirstLetter(payload.actions[0].value);
+    let formUrl = payload.actions[0].value;
     let creatorMessage;
     let message;
 
@@ -156,8 +159,8 @@ app.post('/buttons', function(req, res){
     if (action === 'create') {
         // Store in DB
         // Send message to channel
-        message =  botMessages.mainMessage(creator.name, dayOfWeek);
-        creatorMessage = botMessages.creatorMessage(dayOfWeek);
+        message =  botMessages.mainMessage(creator.name, formUrl);
+        creatorMessage = botMessages.creatorMessage(formUrl);
         console.log(message);
 
         // Send a message to the team
@@ -174,7 +177,8 @@ app.post('/buttons', function(req, res){
         // Send a message to the creator
                     web.chat.postMessage(
                         creator.id,
-                        creatorMessage,
+                        creatorMessage.text,
+                        creatorMessage.data,
                         function (err, res) {
                             if (err) {
                                 console.log('Error:', err);
