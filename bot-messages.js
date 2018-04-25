@@ -3,9 +3,7 @@ let helpers = require('./helpers');
 
 module.exports = {
 
-    confirmMessage: function(creatorName, formUrl) {
-
-        console.log(formUrl);
+    confirmMessage: function(creatorName, sheetId) {
         
         // let dayOfWeek = helpers.capitalizeFirstLetter(day);
         let message_json = {};
@@ -13,7 +11,7 @@ module.exports = {
         let launchButton = {
             name: 'create',
             type: 'button',
-            value: formUrl,
+            value: sheetId,
             text: 'Yes, launch 3 Things!',
             style: 'primary'
         };

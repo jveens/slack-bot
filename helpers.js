@@ -8,20 +8,6 @@ module.exports = {
         return string.charAt(0).toUpperCase() + string.slice(1);
     },
 
-    parseFormUrl: function(words) {
-
-        let url;
-
-        words.some(word => {
-            if (word.startsWith('https://')) {
-                url = word;
-            }
-        });
-
-        console.log(url);
-
-        return url;
-    },
 
     parseDayOfWeek: function(words) {
 
